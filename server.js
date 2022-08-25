@@ -20,9 +20,33 @@ http
                         body += chunks;
                     }).on("end", () => {
                         body = JSON.parse(body);
-                        console.log(body);
+                        let newToDo = toDoList;
+                        newToDo.push(body.item);
+                        console.log(newToDo);
+                        res.writeHead(201);
                     })
-            }else {
+            } else if(method === "DELETE") {
+                let body = "";
+                req
+                    .on("error", (err) => {
+                        console.error(err);
+                    })
+                    .on("data", (chunks) => {
+                        body += chunks;
+                    })
+                    .on("end", () => {
+                        body = JSON.parse(body);
+                        let deleteThis = body.item;
+                        for (i = 0; i < toDoList.length; i++){
+                            if (toDoList[i] === deleteThis) {
+                                toDoList.splice(i, 1);
+                                break;
+                            }
+                        }
+                        console.log(toDoList);
+                        res.writeHead(204);
+                    })
+            } else {
                 res.writeHead(501);
             }
         } else {
