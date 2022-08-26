@@ -1,59 +1,47 @@
-const http = require("http");
+const express = require("express");
+
+let app = express();
+
+app.use(express.json());
 
 const port = 8081;
 
 const toDoList = ["Complete Node Byte", "Play Cricket"];
 
-http
-    .createServer((req, res) => {
-        const { method, url } = req;
-        if (url === "/todos") {
-            if (method === "GET") {
-                res.writeHead(200, {"Content-Type":"text/html"});
-                res.write(toDoList.toString());
-            } else if (method === "POST") {
-                let body = "";
-                req
-                    .on("error", (err) => {
-                        console.error(err);
-                    }).on("data", (chunks) => {
-                        body += chunks;
-                    }).on("end", () => {
-                        body = JSON.parse(body);
-                        let newToDo = toDoList;
-                        newToDo.push(body.item);
-                        console.log(newToDo);
-                        res.writeHead(201);
-                    })
-            } else if(method === "DELETE") {
-                let body = "";
-                req
-                    .on("error", (err) => {
-                        console.error(err);
-                    })
-                    .on("data", (chunks) => {
-                        body += chunks;
-                    })
-                    .on("end", () => {
-                        body = JSON.parse(body);
-                        let deleteThis = body.item;
-                        for (i = 0; i < toDoList.length; i++){
-                            if (toDoList[i] === deleteThis) {
-                                toDoList.splice(i, 1);
-                                break;
-                            }
-                        }
-                        console.log(toDoList);
-                        res.writeHead(204);
-                    })
-            } else {
-                res.writeHead(501);
-            }
-        } else {
-            res.writeHead(404);
-        }
-        res.end(); 
+app.get("/todos", (req, res) => {
+    res.status(200).send(toDoList);
+})
+
+app.post("/todos", (req, res) => {
+    let newToDoList = req.body.item;
+    toDoList.push(newToDoList);
+    res.status(201).send({
+        message : "Task added successfully"
     })
-    .listen(port, () => {
-        console.log("Listening on port " + port);
-    });
+})
+
+app.delete("/todos", (req, res) => {
+    const itemToDelete = req.body.item;
+
+    toDoList.find((item, index) => {
+        if (item === itemToDelete) {
+            toDoList.splice(index, 1);
+        }
+    })
+
+    res.status(202).send({
+        message: `Deleted item - ${req.body.item}`,
+    })
+})
+
+app.all("/todos", (req, res) => {
+    res.status(501).send();
+})
+
+app.all("", (req, res) => {
+    res.status(404).send();
+})
+
+app.listen(port, (req, res) => {
+    console.log("Nodejs Server on port ${port}");
+})
